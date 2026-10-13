@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* ─── Shortlist Brand Tokens ──────────────────────────────── */
+@theme inline {
+  /* Fonts */
+  --font-sans:    var(--font-inter);
+  --font-display: var(--font-jakarta);
+  --font-mono:    var(--font-geist-mono);
+
+  /* Brand Colors */
+  --color-brand-navy:    #1E3A5F;
+  --color-brand-emerald: #10B981;
+  --color-brand-indigo:  #6366F1;
+  --color-brand-amber:   #F59E0B;
+  --color-brand-rose:    #F43F5E;
+
+  /* Surfaces */
+  --color-background: #F9FAFB;
+  --color-surface:    #FFFFFF;
+  --color-border:     #E5E7EB;
+
+  /* Text */
+  --color-ink:   #111827;
+  --color-stone: #6B7280;
+
+  /* Status */
+  --color-status-new:          #6366F1;
+  --color-status-reviewed:     #F59E0B;
+  --color-status-applied:      #10B981;
+  --color-status-interviewing: #3B82F6;
+  --color-status-offer:        #059669;
+  --color-status-rejected:     #9CA3AF;
+
+  /* Tints */
+  --color-sky-tint:    #EFF6FF;
+  --color-indigo-tint: #EEF2FF;
+
+  /* Shadows */
+  --shadow-card:       0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-modal:      0 20px 60px rgba(0,0,0,0.12);
+
+  /* Radius */
+  --radius-btn:   8px;
+  --radius-card:  12px;
+  --radius-modal: 16px;
+}
+
+/* ─── Base Styles ─────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-stone); }

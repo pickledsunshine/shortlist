@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Search Profiles ──────────────────────────────────────────────────────────
+
+model SearchProfile {
+  id           String   @id @default(cuid())
+  name         String
+  keywords     String[] // must-have keywords
+  excludeWords String[] // blacklist
+  locations    String[] // e.g. ["London", "Remote"]
+  remoteOnly   Boolean  @default(false)
+  salaryMin    Int?
+  salaryMax    Int?
+  boards       String[] // e.g. ["indeed", "linkedin", "glassdoor"]
+  isActive             Boolean  @default(true)
+  scrapeIntervalHours  Int?     // null = manual only; 2/6/12/24 = auto-scrape interval
+  lastScrapedAt        DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  jobs Job[]
+}
+
+// ─── Jobs ────────────────────────────────────────────────────────────────────
+
+model Job {
+  id          String   @id @default(cuid())
+  sourceBoard String   // "indeed" | "linkedin" | "glassdoor" | "other"
+  sourceUrl   String   @unique
+  title       String
+  company     String
+  location    String?
+  remote      Boolean  @default(false)
+  salary      String?  // raw string as scraped
+  salaryMin   Int?
+  salaryMax   Int?
+  description String   // full JD text
+  postedAt    DateTime?
+  scrapedAt   DateTime @default(now())
+  matchScore  Int?     // 0–100, computed by AI
+
+  searchProfileId String?
+  searchProfile   SearchProfile? @relation(fields: [searchProfileId], references: [id])
+
+  application Application?
+  contacts    Contact[]
+
+  @@index([company])
+  @@index([scrapedAt])
+  @@index([matchScore])
+}
+
+// ─── Applications ────────────────────────────────────────────────────────────
+
+enum ApplicationStatus {
+  NEW
+  REVIEWED
+  APPLIED
+  INTERVIEWING
+  OFFER
+  REJECTED
+}
+
+model Application {
+  id        String            @id @default(cuid())
+  status    ApplicationStatus @default(NEW)
+  notes     String?
+  appliedAt DateTime?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  jobId String @unique
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  cvVersions    CvVersion[]
+  coverLetters  CoverLetter[]
+  outreachDrafts OutreachDraft[]
+}
+
+// ─── CV Versions ─────────────────────────────────────────────────────────────
+
+model CvVersion {
+  id          String   @id @default(cuid())
+  isBase      Boolean  @default(false) // true = the uploaded original
+  filePath    String   // path to stored DOCX
+  rawText     String   // extracted plain text
+  matchScore  Int?     // alignment with job JD (0–100)
+  createdAt   DateTime @default(now())
+
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+// ─── Cover Letters ────────────────────────────────────────────────────────────
+
+model CoverLetter {
+  id            String   @id @default(cuid())
+  content       String   // HTML or plain text
+  templateUsed  Boolean  @default(false)
+  filePath      String?  // path to DOCX export
+  createdAt     DateTime @default(now())
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+// ─── Contacts (LinkedIn Networking) ──────────────────────────────────────────
+
+model Contact {
+  id             String  @id @default(cuid())
+  name           String
+  title          String?
+  company        String
+  linkedinUrl    String  @unique
+  degree         Int?    // 1 = 1st degree, 2 = 2nd degree
+  mutualConnection String? // name of mutual connection if 2nd degree
+  scrapedAt      DateTime @default(now())
+
+  jobId Job?    @relation(fields: [jobId_fk], references: [id])
+  jobId_fk String?
+
+  outreachDrafts OutreachDraft[]
+
+  @@index([company])
+}
+
+// ─── Outreach Drafts ─────────────────────────────────────────────────────────
+
+model OutreachDraft {
+  id        String   @id @default(cuid())
+  message   String   // AI-drafted message
+  edited    Boolean  @default(false) // user edited it
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  contactId     String
+  contact       Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
